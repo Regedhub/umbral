@@ -1,0 +1,15 @@
+# Publish this Relay folder as a repository, then use it as a Render Blueprint.
+# Explicitly select the Free instance; do not silently fall back to paid compute.
+services:
+  - type: web
+    name: umbral-relay
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
