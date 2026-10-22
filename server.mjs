@@ -1,8 +1,9 @@
 import http from 'node:http';
 import {randomBytes} from 'node:crypto';
 import {WebSocketServer,WebSocket} from 'ws';
+import {accountHttpHandler} from './accounts.mjs';
 export function startRelay(port=Number(process.env.PORT||8787),host='0.0.0.0'){
- const rooms=new Map(),ips=new Map();const server=http.createServer((req,res)=>{res.writeHead(req.url==='/health'?200:404,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify({service:'umbral-relay',protocol:5,ready:true}));});
+ const rooms=new Map(),ips=new Map(),accounts=accountHttpHandler();const server=http.createServer(async(req,res)=>{if(await accounts.handle(req,res))return;res.writeHead(req.url==='/health'?200:404,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify({service:'umbral-relay',protocol:5,ready:true,accounts:accounts.ready}));});
  const wss=new WebSocketServer({server,maxPayload:16000,perMessageDeflate:false});
  const send=(socket,text)=>{if(socket.readyState===WebSocket.OPEN){if(socket.bufferedAmount>256000){socket.close(1013,'Slow connection');return;}socket.send(text);}};
  const fail=(socket,text)=>{send(socket,'ERROR|'+text);socket.close(1008);};
